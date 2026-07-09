@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Prompt Library — The Governed Agent</title>
+<style>
+  :root { --ink:#23272E; --muted:#64707D; --accent:#3D5A80; --accent-soft:#E9EFF5; --line:#E1E5EA; --ground:#FBFBFC; --panel:#fff; --amber:#B45309; --amber-soft:#FBF0DE; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--ground); color: var(--ink); margin: 0; line-height: 1.6; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 56px 24px 90px; }
+  .crumb { font-size: 13px; margin-bottom: 24px; } .crumb a { color: var(--accent); text-decoration: none; }
+  h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(32px,5vw,44px); margin: 0 0 10px; }
+  .lede { color: var(--muted); font-size: 17px; max-width: 60ch; margin: 0 0 14px; }
+  .rule { border-left: 3px solid var(--amber); background: var(--amber-soft); padding: 12px 16px; font-size: 14.5px; margin: 22px 0 40px; }
+  h2 { font-family: Georgia, serif; font-weight: 400; font-size: 24px; margin: 48px 0 4px; }
+  h2::before { content:""; display:block; width:32px; height:3px; background:var(--accent); margin-bottom:12px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 18px; max-width: 64ch; }
+  .q { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); padding: 14px 18px; margin-bottom: 10px; font-size: 15px; }
+  .q .n { font-family: Consolas, monospace; font-size: 12px; color: var(--accent); font-weight: 700; display: block; margin-bottom: 2px; }
+  .design { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 12px; margin: 18px 0; }
+  .design div { background: var(--panel); border: 1px solid var(--line); padding: 12px 16px; font-size: 13.5px; color: var(--muted); }
+  .design strong { color: var(--ink); display: block; margin-bottom: 2px; }
+  footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="crumb"><a href="../">← The Governed Agent</a></p>
+  <h1>The Prompt Library</h1>
+  <p class="lede">The working prompts, delivered to agents <strong>one at a time — never as a list</strong>. Lists invite effort-spreading; single items leave nowhere to hide. Each question is answered fully before the next is sent.</p>
+  <div class="rule"><strong>The standing rule:</strong> the same questions pasted as a block versus delivered one at a time repeatedly produced different defect counts — serialized delivery finds what batched delivery misses. Any automation must preserve the serialization.</div>
+
+  <h2>What makes these prompts work</h2>
+  <div class="design">
+    <div><strong>They demand proof, not assurance.</strong> "Prove it by stating the call-site line number" converts a claim into a checkable artifact.</div>
+    <div><strong>They are framed as falsification.</strong> "Try to find one import that is never called" gives the agent a target to hunt — deeper work than "check the imports."</div>
+    <div><strong>They forbid premature completion.</strong> "Do not respond until every X has been verified" closes the early-exit door.</div>
+    <div><strong>They assume the first answer is incomplete.</strong> Escalations aren't rudeness; the pressured second pass reliably yields a second tranche of real findings.</div>
+  </div>
+
+  <h2>Seeding the reviewer — "the adult in the room"</h2>
+  <div class="q">You are managing the scope/plan/build agent. You are the adult in the room watching over an agent that is wrongly prone to thin and linear thinking, fast decisions over thorough decisions, skimming, skipping, and willfulness against instructions given. You will act in the opposite way: you will be thorough, deliberate, and diligent. You will think holistically, not linearly.</div>
+
+  <h2>Scope &amp; plan interrogation</h2>
+  <p class="sub">One per message, in order, after the agent presents a scope. Wait for the full answer before sending the next.</p>
+  <div class="q"><span class="n">1 · COMPETITIVE LENS</span>What makes this better than best in class? What is it missing? Don't exclude — research fully and respond.</div>
+  <div class="q"><span class="n">2 · PARKING LOT</span>Scour the parking lot. Should anything there logically be added to this build?</div>
+  <div class="q"><span class="n">3 · USER JOURNEY LENS</span>Does this comprehensively consider the user's engagement and make their efforts less onerous? Ensure this perpetuates a smooth user journey and does not create disjointed features.</div>
+  <div class="q"><span class="n">4 · CONFIGURATION LENS</span>Does this promote configuration over code, minimizing future development to accommodate different user needs?</div>
+  <div class="q"><span class="n">5 · COMPLETENESS</span>What else does this need — features, usability, flow, intuitiveness — to be better than best in class?</div>
+  <div class="q"><span class="n">6 · REFORMULATION</span>Based on the totality of this session, reformulate and present a cohesive, well-structured scope that includes all findings. Don't leave anything out.</div>
+  <div class="q"><span class="n">7 · FLAW HUNT</span>Find ALL of the flaws and conflicts in this scope. Then resolve them.</div>
+  <div class="q"><span class="n">8 · DEFERRAL SCRUTINY</span>Scrutinize all suggested parked and deferred items. Add back as many as viable.</div>
+
+  <h2>Post-build verification</h2>
+  <p class="sub">One per message, in order, after the build claims completion. These have since graduated into a stored command and a deterministic verifier — the maturity pipeline at work.</p>
+  <div class="q"><span class="n">1 · DEAD IMPORTS</span>For every file you created or modified, find one import that is never called in the file body. If you can't find one, prove it by stating the call-site line number for every import in every file. Fix anything you find. Do not respond until every import has a verified call site or is removed.</div>
+  <div class="q"><span class="n">2 · UNCONSUMED RETURNS</span>For every function call that stores its return value, find one variable that is never passed onward or returned. If you can't find one, prove it by stating where every stored result is consumed. Do not respond until every assigned variable is consumed.</div>
+  <div class="q"><span class="n">3 · WORKFLOW TRACE</span>Pick the primary user action this package delivers. Walk it through the actual code, one function call at a time, stating each file and line number. Try to find a point where the next step should exist but the code doesn't call anything. Fix every gap. Then repeat for the second most important user action.</div>
+  <div class="q"><span class="n">4 · INTEGRATION WIRING</span>For each cross-feature integration point in the intelligence document, try to find one where the target file has the import but not the execution call. Prove each integration executes by stating the line number of the call — not the import.</div>
+  <div class="q"><span class="n">5 · CONFIG CONSUMPTION</span>Open the migration file. For every configuration key seeded, try to find one that has no consumer anywhere in the source tree. State the consumer file and line for each key. Wire the consumer or delete the seed.</div>
+  <div class="q"><span class="n">6 · SCHEMA MATCH</span>Open the generated schema types. For each insert or update statement in your code, compare every key to the table's column list. Try to find one key that doesn't match a column name. Do not respond until every key matches the schema.</div>
+  <div class="q"><span class="n">7 · COMMITMENT COVERAGE</span>Read the plan's commitments register. For each commitment, open the file where the deliverable should exist and find the exact implementation. Try to find one commitment whose implementation doesn't exist or is incomplete. Do not respond until every commitment has verified implementation in the code.</div>
+  <div class="q"><span class="n">8 · VERIFIER CLEAN</span>Run the deterministic verifier. Fix every issue it reports. Run it again. Repeat until the output shows zero issues, then paste the final clean output.</div>
+
+  <h2>Escalations — the second and subsequent passes</h2>
+  <p class="sub">Repeated until a pass returns empty. The exit condition is a clean pass, not a persuasive report.</p>
+  <div class="q">I don't trust you found ALL the flaws — just enough to placate the directive. Find ALL flaws, line by line.</div>
+  <div class="q">The build agent claims to have fixed the issues. Re-read the document and the transcript and find the remaining flaws.</div>
+  <div class="q">The build agent claims all commitments delivered with zero deferred items. Verify ALL items by reading the actual code — not by trusting the report.</div>
+  <div class="q">Do not trust checklists. Review all deliverables against the code — independently, against the code. Scrutinize issues deferred to the parking lot to ensure they were truly blocked and not agent fatigue.</div>
+  <div class="q">Review the entire plan once again against the actual code. Report back any unresolved issues.</div>
+
+  <footer>From Appendix A of the working paper "The Governed Agent," July 2026. © 2026 Woodmoor Digital</footer>
+</div>
+</body>
+</html>
