@@ -40,7 +40,29 @@
   </div>
 
   <h2>Seeding the reviewer — "the adult in the room"</h2>
-  <div class="q">You are managing the scope/plan/build agent. You are the adult in the room watching over an agent that is wrongly prone to thin and linear thinking, fast decisions over thorough decisions, skimming, skipping, and willfulness against instructions given. You will act in the opposite way: you will be thorough, deliberate, and diligent. You will think holistically, not linearly.</div>
+  <div class="q">You are managing the scope/plan/build agent. You are the adult in the room watching over an agent that is wrongly prone to thin and linear thinking, fast decisions over thorough decisions, skimming, skipping — defiant, recalcitrant, unruly, and willful against instructions given. You will act in the opposite way: you will be thorough, deliberate, and diligent. You will think holistically, not linearly.</div>
+
+  <h2>Launching the phases</h2>
+  <p class="sub">Every phase launch carries its own standing constraints — appended to the command, every time.</p>
+  <div class="q"><span class="n">SCOPE LAUNCH</span>/scope SxPy. Do not use subagents. Strive for excellence and perfection.<br><span style="font-size:12.5px;color:var(--muted)">("Do not use subagents" is then appended to every scope question — subagents lose project context, and the interrogation only works against the agent that holds it.)</span></div>
+  <div class="q"><span class="n">PLAN LAUNCH</span>/plan SxPy. Do not use subagents. Refer to the most recent version of the intelligence document — do NOT use your memory. No items may be deferred or parked unless approval is given by the user. Ensure there is a properly seeded tenant, partner, and/or investor where this function can be seen in the app; if none exists, adapt one or create one.</div>
+  <div class="q"><span class="n">BUILD LAUNCH</span>/build SxPy. Use the Plan as strict guidance. Be thorough, precise, excellent, and perfect. Do not use subagents. Build completely, strictly in the order listed in the Plan — do not deviate. Deliver the entire plan, in full. You have more than enough context window to complete without stopping and asking.</div>
+  <div class="q"><span class="n">MID-BUILD INTERRUPT</span>I interrupted your work on step N. Review it and ensure it delivers the features, processes data correctly, and has no bugs — runtime or otherwise. Fix ALL identified bugs.</div>
+
+  <h2>The manager choreography</h2>
+  <p class="sub">The reviewer never fixes anything — it produces findings; the operator relays them to the builder; the loop repeats until a pass comes back empty. These are the actual pass scripts (paths genericized).</p>
+  <div class="q"><span class="n">PASS 1 · SCOPE REVIEW</span>The first pass of the scoping phase is complete, and you are to find ALL omissions, missed opportunities, flaws, inaccuracies, and lack of adherence to delivering better than best in class against all project principles. Find all the false claims. Do not use subagents. [Transcript path + intelligence document path + review template path.] FIND ALL SUBSTANTIVE FLAWS. <strong>Do not give the agent options — if there are options to consider, present them to me for decisions.</strong> Scrutinize that ALL requirements are met.</div>
+  <div class="q"><span class="n">PASS 1 · PLAN REVIEW</span>The first pass of the planning phase is complete. Identify all SUBSTANTIVE flaws: What items in the intelligence file were not captured by the plan? What assumptions are unfounded? What code assumptions are inaccurate? Find the flaws in each claim. [Transcript + plan + intelligence paths; flaw-exposure document from the plan-review template.] Do not give the agent options — present them to me, then proceed.</div>
+  <div class="q"><span class="n">BUILD REVIEW</span>The build agent has finished. Read the build agent's transcript, the plan, and — AGAINST CODE — find ALL the flaws. Report back with detailed instructions for the build agent. DO NOT TRUST CHECKLISTS. Review ALL deliverables against code. <strong>DON'T GREP — check independently against the code.</strong> Scrutinize issues deferred to the parking lot to ensure they were truly blocked and not agent fatigue.</div>
+  <div class="q"><span class="n">THE STANDING ASSUMPTION</span>The manager will have done a poor job on its first pass — so when the report is built: "The build agent claims all commitments delivered with zero deferred items. Verify ALL! ALL! ALL! items by reading actual code — not trusting the report." Repeat passes until the reviewer returns no findings.</div>
+
+  <h2>The combined adversarial verification pass</h2>
+  <p class="sub">Run against every build before close-out — three attacks in a single pass.</p>
+  <div class="q"><span class="n">VERIFY</span>Run the combined verification pass:<br>
+  1. <strong>Cloud-probe</strong> every column name, entity_type, and audit-action string the new code references.<br>
+  2. <strong>Adversarial input attack</strong> on every new exported function: null, undefined, NaN, Infinity, BigInt, surrogate-split strings, NUL byte, oversize body, malformed UUID, uppercase UUID.<br>
+  3. <strong>Sibling-file diff</strong> against the 1–2 most relevant sibling files: hardcoded action strings, missing .strict(), missing snapshot clamp, missing concurrency guard.<br>
+  Fix everything found in this single pass. Run typecheck + affected test files only. Stop and ask if findings exceed 3 or scope balloons past 30 tool calls.</div>
 
   <h2>Scope &amp; plan interrogation</h2>
   <p class="sub">One per message, in order, after the agent presents a scope. Wait for the full answer before sending the next.</p>
