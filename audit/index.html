@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Governed Agent — Ground-Truth Audit</title>
+<style>
+  :root {
+    --ground: #FBFBFC;
+    --panel: #FFFFFF;
+    --ink: #23272E;
+    --muted: #64707D;
+    --accent: #3D5A80;
+    --accent-soft: #E9EFF5;
+    --drift: #B45309;
+    --drift-soft: #FBF0DE;
+    --stale: #A13D3D;
+    --stale-soft: #F7E8E8;
+    --ok: #2F7D5C;
+    --ok-soft: #E6F2EC;
+    --line: #E1E5EA;
+    --mono: Consolas, "SF Mono", ui-monospace, Menlo, monospace;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; margin: 0; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 52px 28px 96px; }
+
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-family: var(--serif); font-size: clamp(34px, 5.5vw, 48px); font-weight: 400; line-height: 1.08; margin: 0 0 14px; text-wrap: balance; }
+  .lede { font-size: 18px; line-height: 1.55; color: var(--muted); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong { color: var(--ink); }
+
+  h2 { font-family: var(--serif); font-size: 26px; font-weight: 400; margin: 60px 0 8px; }
+  h2::before { content: ""; display: block; width: 34px; height: 3px; background: var(--accent); margin-bottom: 14px; }
+  h3.h { font-size: 16px; font-weight: 600; margin: 28px 0 10px; }
+  .sub { color: var(--muted); margin: 0 0 22px; max-width: 68ch; }
+
+  .statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-bottom: 8px; }
+  .stat { background: var(--panel); padding: 16px 18px; }
+  .stat .n { font-family: var(--serif); font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--panel); }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); }
+  th { text-align: left; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 9px 14px; border-bottom: 1px solid var(--line); background: var(--ground); white-space: nowrap; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: var(--mono); font-size: 0.87em; background: var(--accent-soft); padding: 1px 5px; border-radius: 2px; }
+
+  .chip { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+  .chip.ok { background: var(--ok-soft); color: var(--ok); }
+  .chip.drift { background: var(--drift-soft); color: var(--drift); }
+  .chip.stale { background: var(--stale-soft); color: var(--stale); }
+
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 18px 0 6px; }
+  .flow .step { background: var(--panel); border: 1px solid var(--line); font-size: 13px; font-weight: 600; padding: 7px 13px; }
+  .flow .step small { display: block; font-weight: 400; font-size: 11.5px; color: var(--muted); }
+  .flow .arr { color: var(--accent); }
+  .flow .step.gate { border-color: var(--accent); background: var(--accent-soft); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); padding: 18px 20px; }
+  .twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .card h3 { margin: 0 0 10px; font-size: 15px; font-weight: 600; }
+  .card ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+  .card ul strong { color: var(--ink); }
+
+  .finding { border: 1px solid var(--line); border-left: 4px solid var(--drift); background: var(--panel); padding: 16px 20px; margin-bottom: 14px; }
+  .finding.hard { border-left-color: var(--stale); }
+  .finding h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+  .finding h3 .fid { font-family: var(--mono); font-size: 12px; color: var(--muted); font-weight: 400; margin-right: 8px; }
+  .finding p { margin: 0; font-size: 14px; color: var(--muted); }
+  .finding p strong { color: var(--ink); }
+  .finding .ev { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--ground); border: 1px solid var(--line); padding: 6px 10px; margin-top: 10px; display: block; overflow-x: auto; white-space: nowrap; }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 14px 18px; font-size: 14.5px; margin: 22px 0; }
+
+  .planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 16px; }
+  .plane { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--accent); padding: 14px 16px; }
+  .plane h3 { margin: 0 0 6px; font-size: 14.5px; font-weight: 600; }
+  .plane .cnt { font-family: var(--serif); font-size: 24px; }
+  .plane p { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  footer { margin-top: 70px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Ground-Truth Audit · July 7, 2026</p>
+  <h1>The Governed Agent, as it actually runs</h1>
+  <p class="lede">A code-level audit of the InvestLyft agent-orchestration system — <strong>every hook, command, and state file read directly from <code>.cursor/</code></strong> — diffed against the six process documents that describe it. The system is substantially more capable than its documentation; the documentation is wrong in specific, verifiable places.</p>
+
+  <div class="statgrid">
+    <div class="stat"><div class="n">15</div><div class="l">Hooks wired</div></div>
+    <div class="stat"><div class="n">23</div><div class="l">Commands</div></div>
+    <div class="stat"><div class="n">45+</div><div class="l">Verifier checks</div></div>
+    <div class="stat"><div class="n">~30</div><div class="l">State files</div></div>
+    <div class="stat"><div class="n">95+</div><div class="l">Packages shipped</div></div>
+    <div class="stat"><div class="n">7</div><div class="l">Confirmed drifts</div></div>
+  </div>
+
+  <h2>The system map</h2>
+  <p class="sub">Four planes, all read from source. The lifecycle below is what the commands actually define today — including the newer mechanisms (checkpoint resumption, Shiplight browser verification, judgment gate, process ledger) that most of the docs predate.</p>
+
+  <div class="flow">
+    <span class="step">/start<small>seed + proof quiz</small></span><span class="arr">→</span>
+    <span class="step">/scope<small>intelligence doc</small></span><span class="arr">→</span>
+    <span class="step gate">approval</span><span class="arr">→</span>
+    <span class="step">/plan<small>12 sections + 3 manifests</small></span><span class="arr">→</span>
+    <span class="step gate">approval</span><span class="arr">→</span>
+    <span class="step">/build<small>one file at a time</small></span><span class="arr">→</span>
+    <span class="step">post-dev<small>8 falsification checks + Shiplight</small></span><span class="arr">→</span>
+    <span class="step gate">finalize<small>verifier → commit → push</small></span>
+  </div>
+  <p class="sub" style="font-size:13.5px">A Manager agent sits outside the pipeline (queue decisions, scope/plan reviews, orchestration reviews). A Fix-Pass path handles targeted changes to shipped packages without re-running the full lifecycle.</p>
+
+  <div class="planes">
+    <div class="plane">
+      <h3>Commands</h3><span class="cnt">23</span>
+      <p>Lifecycle entry points + maintenance (curate-knowledge, extract, validate-rules, orchestration-review). Three seeds with checkpoint-hash fast-path.</p>
+    </div>
+    <div class="plane">
+      <h3>Hooks</h3><span class="cnt">15</span>
+      <p>Wired in hooks.json across 13 events. Hard blockers: write-gate (35+ checks), shell-gate, mcp-gate. Advisors: completion-gate, tool-nudge. Plus 8 utility modules.</p>
+    </div>
+    <div class="plane">
+      <h3>State</h3><span class="cnt">~30</span>
+      <p>evidence.jsonl (archived, max 20), checkpoint.json (multi-session resume), ~16 flags, judgment-gate.json, gate-denials, self-healing counters, transcript map.</p>
+    </div>
+    <div class="plane">
+      <h3>Verification</h3><span class="cnt">3-tier</span>
+      <p>Deterministic verifier (45+ checks, JSON-only), Shiplight browser sessions driven by page manifests, judgment gate that blocks all writes if the agent fails 2+ of 4 scenarios.</p>
+    </div>
+  </div>
+
+  <h3 class="h">Hooks as wired in hooks.json (not as documented)</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Event</th><th>Hook</th><th>Kind</th><th>What it actually does</th></tr>
+      <tr><td><code>sessionStart</code></td><td>session-init.js</td><td>Init</td><td>Archives evidence, clears 35+ flags, detects active package, injects mode context + domain-filtered gotchas, checkpoint fast-path</td></tr>
+      <tr><td><code>preToolUse</code></td><td>write-gate.js</td><td><strong>Blocker</strong></td><td>35+ checks: gate-file validity (5 sections, 16 principles), RLS patterns, audit-log inserts, @journey, Zod safeParse, select("*") ban, destructive-edit ban, judgment-gate lockout, manager-review read enforcement</td></tr>
+      <tr><td><code>beforeShellExecution</code></td><td>shell-gate.js</td><td><strong>Blocker</strong></td><td>Bash-syntax bans, protected state files, git commit/push gated on post-dev completion, destructive-git ban during build</td></tr>
+      <tr><td><code>beforeMCPExecution</code></td><td>mcp-gate.js</td><td><strong>Blocker</strong></td><td>Browser loop detection only (same URL 3×)</td></tr>
+      <tr><td><code>afterMCPExecution</code></td><td><span class="chip stale">EMPTY</span></td><td>—</td><td>No hook wired — despite what three docs say (see D1)</td></tr>
+      <tr><td><code>afterShellExecution</code></td><td>shell-evidence.js</td><td>Observer</td><td>Logs lint/typecheck/finalize/git outcomes, self-healing failure counters, checkpoint evidence updates</td></tr>
+      <tr><td><code>afterFileEdit</code></td><td>edit-observer.js</td><td>Observer</td><td>files-written tracking, doc-update flags, auto-runs sync-status, checkpoint step auto-advance</td></tr>
+      <tr><td><code>afterAgentResponse</code></td><td>response-observer.js</td><td>Observer</td><td>Retro/report/seed detection + the judgment gate (4 scenarios; 2+ fails → all writes blocked)</td></tr>
+      <tr><td><code>postToolUse</code></td><td>verifier-capture, tool-nudge, read-tracker</td><td>Observer/Nudge</td><td>Verifier JSON capture (fallback), contextual nudges (empty states, self-healing escalation), Read tracking for review enforcement</td></tr>
+      <tr><td><code>postToolUseFailure</code></td><td>failure-evidence.js</td><td>Observer</td><td>Logs denials/timeouts/errors that were previously invisible</td></tr>
+      <tr><td><code>beforeSubmitPrompt</code></td><td>prompt-context.js</td><td>Gate</td><td>Blocks new-task prompts during unfinished post-dev; transcript mapping per phase</td></tr>
+      <tr><td><code>preCompact</code></td><td>pre-compact.js</td><td>Injector</td><td>Re-injects package state, evidence status, checkpoint progress, critical rules before compaction</td></tr>
+      <tr><td><code>stop</code></td><td>completion-gate.js</td><td>Advisor</td><td>Up to 3 auto-continues with missing-item lists; preserves state for resumption rather than hard-blocking</td></tr>
+      <tr><td><code>subagentStop</code></td><td>verifier-capture.js</td><td>Observer</td><td>Primary verifier JSON capture (with postToolUse fallback for ~10% event-miss upstream bug)</td></tr>
+      <tr><td><code>sessionEnd</code></td><td>session-end.js</td><td>Init</td><td>Session metrics to build-metrics.jsonl; leaves flags for crash-safe cleanup at next start</td></tr>
+    </table>
+  </div>
+
+  <div class="callout" style="border-left-color: var(--ok); background: var(--ok-soft);">
+    <strong>Remediation complete (July 2026):</strong> all five documents below were regenerated from ground truth in the week following this audit — the whitepaper as v2 (with a new section on the process auditing itself), the agent briefing (highest leverage, since it seeds every agent), and the three mechanical references. Each now carries a "last ground-truth refresh" date and the rule that hook source wins any disagreement. The verdicts below are preserved as the original findings.
+  </div>
+
+  <h2>Staleness report: doc by doc</h2>
+  <p class="sub">Verdicts: <span class="chip ok">CURRENT</span> matches code · <span class="chip drift">DRIFTED</span> right shape, wrong details · <span class="chip stale">STALE</span> describes mechanisms that no longer exist.</p>
+
+  <div class="tablewrap">
+    <table>
+      <tr><th>Document</th><th>Verdict</th><th>Assessment</th></tr>
+      <tr>
+        <td style="white-space:nowrap"><strong>ORCHESTRATION_WHITEPAPER.md</strong><br><span style="font-size:12px;color:var(--muted)">June 2026, 282 lines</span></td>
+        <td><span class="chip drift">DRIFTED</span></td>
+        <td>The four governance layers, adversarial review, and knowledge loop are still the system's true architecture — the principles hold. But it describes the system as of roughly S30 and is silent on everything since: the checkpoint/resumption system, Shiplight verification with machine-readable page manifests, the judgment gate, and the process-ledger self-improvement loop. Its knowledge-entry description (free-text "GOTCHA:" lines) predates the structured OA-NNN JSON schema.</td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap"><strong>BUILD_PROCESS_FLOW.md</strong><br><span style="font-size:12px;color:var(--muted)">undated, 363 lines</span></td>
+        <td><span class="chip drift">DRIFTED</span></td>
+        <td>The most detailed doc and mostly right on the write/shell gates and checkpoint flow — but wrong on browser verification: it describes an <code>mcp-evidence.js</code> hook and a completion gate requiring 5 browser evidence actions, neither of which exists in code anymore (D1, D2). Flag and check counts undercount reality (D4).</td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap"><strong>HOOKS_SYSTEM_GUIDE.md</strong><br><span style="font-size:12px;color:var(--muted)">undated, 585 lines</span></td>
+        <td><span class="chip drift">DRIFTED</span></td>
+        <td>Its 17-hook table lists <code>mcp-evidence.js</code> on <code>afterMCPExecution</code> (unwired) and omits <code>read-tracker.js</code>. No mention of the judgment gate, self-healing counters, or gotcha injection. The event-contract table and flag-system concept remain accurate.</td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap"><strong>AGENT_BRIEFING.md</strong><br><span style="font-size:12px;color:var(--muted)">undated, 318 lines</span></td>
+        <td><span class="chip stale">STALE</span></td>
+        <td>Frozen around S24 ("S24 most recent"; the system is at S35P13/S36). Its commit-gate checklist requires browser evidence entries the gate no longer checks. This doc is read by every build agent at seed time — staleness here directly miscalibrates agents.</td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap"><strong>DEVELOPMENT_WORKFLOW.md</strong><br><span style="font-size:12px;color:var(--muted)">undated, 280 lines</span></td>
+        <td><span class="chip drift">DRIFTED</span></td>
+        <td>The owner-facing four-phase workflow (prepare → build → review → next) is still how the system is driven, and the anti-patterns section is timeless. Build-order details and the browser-verification description predate Shiplight and the manifest system.</td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap"><strong>forum-post-draft.md</strong><br><span style="font-size:12px;color:var(--muted)">March 2026, 61 lines</span></td>
+        <td><span class="chip stale">STALE</span></td>
+        <td>An honest snapshot of the March-2026 system ("7 layers", "14 completion criteria", a browser gate enforcing kill→restart evidence ordering). That browser gate no longer exists — mcp-gate now only does loop detection. Fine as history; wrong as description.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>Confirmed drift findings</h2>
+  <p class="sub">Each verified directly against code, not inferred from doc comparison.</p>
+
+  <div class="finding hard">
+    <h3><span class="fid">D1</span>mcp-evidence.js exists but is not wired</h3>
+    <p>Three docs (HOOKS_SYSTEM_GUIDE hook #6, BUILD_PROCESS_FLOW §10.3.2, AGENT_BRIEFING §3) describe it logging browser actions on <code>afterMCPExecution</code>. The file is on disk, but the event binding is empty.</p>
+    <span class="ev">.cursor/hooks.json:47 → "afterMCPExecution": []</span>
+  </div>
+
+  <div class="finding hard">
+    <h3><span class="fid">D2</span>The completion gate no longer checks browser evidence</h3>
+    <p>Docs claim evidence.jsonl must contain all five actions (<code>lint, typecheck, browser-navigate, browser-snapshot, browser-console</code>) before a session may end. <code>completion-gate.js</code> contains <strong>zero</strong> references to the browser actions. Browser verification moved to a stronger mechanism entirely: Shiplight sessions driven by <code>SxPy-pages.json</code> manifests, enforced by verifier check 36 — described only in post-dev.md.</p>
+    <span class="ev">grep -c "browser-navigate|browser-snapshot|browser-console" completion-gate.js → 0</span>
+  </div>
+
+  <div class="finding">
+    <h3><span class="fid">D3</span>Verifier check counts undercount ~2×</h3>
+    <p>BUILD_PROCESS_FLOW and HOOKS_SYSTEM_GUIDE both say "25 deterministic checks." The current verifier agent defines <strong>45+ mechanical checks</strong>, with check numbers referenced into the high 30s (check 36 = page manifests) plus test manifests (<code>SxPy-tests.json</code>) and touched-file ownership (<code>SxPy-accepts.json</code>) that no process doc mentions.</p>
+  </div>
+
+  <div class="finding">
+    <h3><span class="fid">D4</span>Flag/state counts are undercounted</h3>
+    <p>Docs say session-init deletes 15 flags and the flag system has 16 entries. The code clears <strong>35+ flags</strong> at session start and maintains roughly <strong>30 state files</strong>, including newer ones the docs never mention: judgment-gate.json, gate-denials.json, self-healing counters (heal-lint/typecheck/dbpush), read-tracker.json, transcript-map.json, gotcha-index.json.</p>
+  </div>
+
+  <div class="finding">
+    <h3><span class="fid">D5</span>The March forum post's "layer 7" browser gate is gone</h3>
+    <p>It described a preToolUse gate blocking <code>browser_navigate</code> unless kill-server → dev-server entries existed in exact evidence order. Today's mcp-gate.js does only one thing: block the same URL navigated 3× consecutively.</p>
+  </div>
+
+  <div class="finding">
+    <h3><span class="fid">D6</span>Era markers frozen at S24</h3>
+    <p>AGENT_BRIEFING tells every newly seeded agent that S24 is the most recent package. The system has shipped through S35P13 with S36 underway — 95+ plan files in <code>.cursor/plans/</code>. Since this file is part of the mandatory seed, its staleness propagates into every build session.</p>
+  </div>
+
+  <div class="finding">
+    <h3><span class="fid">D7</span>The strongest recent mechanisms are documented nowhere in docs/</h3>
+    <p>Four load-bearing systems exist only in command files or code: the <strong>judgment gate</strong> (4 scenario probes at seed; 2+ failures block all writes), <strong>read-tracker manager-review enforcement</strong> (can't cite a file in review you didn't Read), <strong>domain-filtered gotcha injection</strong> at session start, and the <strong>orchestration-review → process-ledger loop</strong> (7-dimension post-build process reviews feeding a findings ledger). These are arguably the most novel parts of the system — and the whitepaper doesn't know they exist.</p>
+  </div>
+
+  <h2>What the system says about itself</h2>
+  <p class="sub">The process ledger (<code>docs/orchestration/process-ledger.jsonl</code>, entries dated July 1–6) records the system auditing its own integrity. Three fixes are designed but <strong>frozen since July 1</strong>, awaiting owner decisions:</p>
+  <div class="twocol">
+    <div class="card">
+      <h3>Open state-integrity flaws</h3>
+      <ul>
+        <li><strong>Done-timing lie</strong> — build-status "done" is written ~15 steps before the verifier runs and the commit lands; a late failure leaves false state. Proposed fix (building → finalizing → done) was found to <strong>deadlock</strong> by two independent review agents.</li>
+        <li><strong>Verifier scans the whole tree</strong> — every build inherits older packages' uncommitted debt and reflexively defers it. Fix: scope to the package's commit window.</li>
+        <li><strong>Self-deferral without proof</strong> — an agent can defer its own verifier failures with free-prose reasons. Fix: require git-diff proof the file wasn't touched.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Decisions parked for the owner</h3>
+      <ul>
+        <li><strong>CURRENT_TASK.md trim</strong> — the seed chokes on it at 4,034 lines / 330 KB. How much to keep, where to archive?</li>
+        <li><strong>Decision hard-stop classes</strong> — which decision types must block a build until the owner answers (proposed: security posture, money movement, irreversible schema)?</li>
+        <li><strong>Fix sequencing</strong> — improvement-plan.md recommends the low-risk Session 2 items first (migration ordering, task-file trim, evidence durability).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>The deeper finding: enforcement shares the agent's filesystem</h2>
+  <p class="sub">After this audit shipped, a late-night session surfaced the limit underneath everything above — now captured in the process ledger (July 16).</p>
+  <div class="finding hard">
+    <h3><span class="fid">D8</span>The referee and the player share one filesystem, with equal permissions</h3>
+    <p>Every enforcement hook lives in a folder the agent can also write to. A determined agent can edit its own referee; the write gate <strong>fails open on crash</strong> (<code>failClosed: false</code>); the freeze files that check 39 trusts are not on the protected list; and the shared <code>active-package.json</code> caused a real collision — a new build inheriting a dead build's session identity and getting locked out. Every patch written that night was application-level: more code in the same writable folder. <strong>This class cannot be closed with cleverer scripts.</strong></p>
+    <p style="margin-top:10px"><strong>The fix, one layer down:</strong> OS-level isolation — run the agent in a container with enforcement files mounted read-only/root-owned (the established devcontainer pattern), block the hook-skip flags (<code>--no-verify</code>, stash), let real pre-commit hooks do the gating, and keep push keys out of the container with CI as backstop. Not "we'll detect tampering" — the agent <em>can't</em>. A partial no-container subset (skip-flag guard + CI + no keys) is adoptable immediately; the full container decision is pending.</p>
+  </div>
+
+  <h2>Portability map for extraction</h2>
+  <p class="sub">What a portable toolkit (for future products) would take as-is, take with configuration, and leave behind. The commands audit estimates ~3–5 hours to strip and parameterize.</p>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Tier</th><th>Components</th></tr>
+      <tr>
+        <td style="white-space:nowrap"><span class="chip ok">PORTABLE AS-IS</span></td>
+        <td>Checkpoint module (atomic writes, step auto-advance, session resumption) · evidence JSONL + archival · flag state machine · post-dev evidence checks · string-utils pattern library · lifecycle command structure (seed → scope → plan → build → post-dev → finalize) · verifier-subagent pattern (JSON-only output) · orchestration-review framework + process ledger · knowledge capture/curation with tombstones</td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap"><span class="chip drift">CONFIGURABLE</span></td>
+        <td>Gate-file validation (16 principles, OA citations → config) · doc validators (section lists → config) · gotcha injector (knowledge path, domain filter → config) · seed file lists + proof quizzes · plan template sections · judgment scenarios (concept portable, probes need rewriting per domain)</td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap"><span class="chip stale">LEAVE BEHIND</span></td>
+        <td>RLS/createAdminClient rules, billing_audit_log requirement, @journey JSDoc, ConfirmDialog path, semantic-token bans, CAP_TABLE_BRD paths, Supabase column verification, cap-table competitor registry, seed-context tenants, InvestLyft verifier domain checks (FK wiring, sidebar nav, feature gates)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Bottom line:</strong> the architecture the whitepaper describes is real and still governs the system — but the system has grown three major capabilities since it was written (checkpoint resumption, manifest-driven browser verification, the judgment gate + process-ledger loop), and the mechanical reference docs contradict the code in seven verified places. Any capture — whitepaper refresh, toolkit extraction, or deck — should be generated from <code>.cursor/</code> and the command files, treating docs/ as historical narrative only.
+  </div>
+
+  <footer>A ground-truth audit of a production agent-orchestration system, July 2026. Companion to the working paper "The Governed Agent."</footer>
+</div>
+
+</body>
+</html>

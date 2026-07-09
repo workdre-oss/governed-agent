@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pre-Regeneration Review — Road to V2</title>
+<style>
+  :root {
+    --ground: #FAFAF8;
+    --panel: #FFFFFF;
+    --ink: #26282B;
+    --muted: #6B7076;
+    --line: #E3E4E0;
+    --blue: #2F6690;
+    --blue-soft: #E7EFF5;
+    --green: #2F7D5C;
+    --green-soft: #E4F1EA;
+    --amber: #B26A00;
+    --amber-soft: #F9EEDC;
+    --red: #A13D3D;
+    --red-soft: #F6E8E8;
+    --purple: #6B4E9E;
+    --purple-soft: #EFEAF7;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: "Segoe UI", system-ui, sans-serif;
+    --mono: Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--ground); color: var(--ink); font-family: var(--sans); margin: 0; line-height: 1.5; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 44px 24px 90px; }
+
+  h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 5vw, 42px); margin: 0 0 6px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--blue); margin: 0 0 8px; }
+  .lede { color: var(--muted); font-size: 16.5px; max-width: 60ch; margin: 0 0 34px; }
+
+  h2 { font-family: var(--serif); font-weight: 400; font-size: 24px; margin: 54px 0 4px; }
+  h2::before { content: ""; display: block; width: 32px; height: 3px; background: var(--blue); margin-bottom: 12px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 18px; max-width: 64ch; }
+
+  /* journey */
+  .journey { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; margin: 18px 0; }
+  .jstep { flex: 1 1 130px; min-width: 128px; background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--blue); padding: 12px 12px 10px; position: relative; }
+  .jstep .n { font-family: var(--mono); font-size: 11px; color: var(--blue); font-weight: 700; }
+  .jstep h3 { margin: 2px 0 4px; font-size: 14.5px; }
+  .jstep p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .jstep.now { border-top-color: var(--green); background: var(--green-soft); }
+  .jstep.goal { border-top-color: var(--purple); background: var(--purple-soft); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin: 10px 0 4px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+  .chartcard { background: var(--panel); border: 1px solid var(--line); padding: 18px; overflow-x: auto; }
+
+  .lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 12px; }
+  .lane { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; border-top: 4px solid var(--blue); }
+  .lane.docs { border-top-color: var(--green); }
+  .lane.tool { border-top-color: var(--purple); }
+  .lane.research { border-top-color: var(--amber); }
+  .lane h3 { margin: 0 0 10px; font-size: 15px; }
+  .lane h3 .ico { font-size: 18px; margin-right: 6px; }
+  .item { display: flex; gap: 8px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .item:first-of-type { border-top: none; }
+  .tag { flex: 0 0 auto; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; margin-top: 1px; white-space: nowrap; }
+  .tag.go { background: var(--green-soft); color: var(--green); }
+  .tag.you { background: var(--amber-soft); color: var(--amber); }
+  .tag.test { background: var(--blue-soft); color: var(--blue); }
+  .tag.big { background: var(--purple-soft); color: var(--purple); }
+  .tag.frozen { background: var(--red-soft); color: var(--red); }
+
+  /* dependency flow */
+  .depflow { display: grid; gap: 10px; }
+  .deprow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); padding: 10px 14px; }
+  .deprow .cause { font-weight: 700; font-size: 13.5px; white-space: nowrap; }
+  .deprow .arr { color: var(--blue); font-size: 16px; }
+  .deprow .effect { font-size: 13px; color: var(--muted); }
+  .deprow.you-row { border-left: 4px solid var(--amber); }
+
+  .youcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  .youcard { background: var(--amber-soft); border: 1px solid var(--amber); padding: 14px 16px; }
+  .youcard .q { font-weight: 700; font-size: 14px; margin: 0 0 6px; }
+  .youcard p { margin: 0; font-size: 12.5px; color: var(--ink); }
+
+  footer { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Pre-Regeneration Review · July 2026</p>
+  <h1>The Road to V2</h1>
+  <p class="lede">Before the machine builds the product again, upgrade the machine. Everything below was already found — in the process ledger, improvement plan, whitepaper, and this week's audits. This just puts it in one picture.</p>
+
+  <h2>The journey</h2>
+  <p class="sub">Six stops. You are at stop 1. The rebuild is last — everything before it makes the rebuild cheaper and better.</p>
+  <div class="journey">
+    <div class="jstep now"><span class="n">NOW</span><h3>Docs true</h3><p>5 process docs regenerated ✓ Genesis Package named ✓ Founding rules restored to MANDATES ✓ Container finding captured ✓</p></div>
+    <div class="jstep"><span class="n">1</span><h3>Quick wins</h3><p>Small fixes, days not weeks. No risk to dev system.</p></div>
+    <div class="jstep"><span class="n">2</span><h3>Run the drill</h3><p>Fresh agent + kit only. Its guesses = the real gaps.</p></div>
+    <div class="jstep"><span class="n">3</span><h3>Upgrade toolkit</h3><p>Extract, parameterize, let the platform do what it now can.</p></div>
+    <div class="jstep"><span class="n">4</span><h3>Re-crawl market</h3><p>Fix the blueprint ceiling. New corrected map → new BRD.</p></div>
+    <div class="jstep goal"><span class="n">5</span><h3>REBUILD</h3><p>V2, built by the upgraded machine against the corrected map.</p></div>
+  </div>
+
+  <h2>Every opportunity, by payoff and effort</h2>
+  <p class="sub">Top-left is gold: big payoff, small effort. Bottom-right is the trap. Color = lane.</p>
+  <div class="legend">
+    <span><i class="dot" style="background:#2F6690"></i> Process</span>
+    <span><i class="dot" style="background:#2F7D5C"></i> Documents</span>
+    <span><i class="dot" style="background:#6B4E9E"></i> Tooling</span>
+    <span><i class="dot" style="background:#B26A00"></i> Research</span>
+    <span><i class="dot" style="background:#fff;border:2px solid #A13D3D;width:9px;height:9px"></i> needs your decision first</span>
+  </div>
+  <div class="chartcard">
+    <svg viewBox="0 0 880 520" width="100%" style="min-width:640px" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, sans-serif">
+      <!-- quadrant fills -->
+      <rect x="60" y="20" width="390" height="230" fill="#E4F1EA" opacity="0.45"/>
+      <rect x="450" y="20" width="390" height="230" fill="#EFEAF7" opacity="0.4"/>
+      <rect x="60" y="250" width="390" height="230" fill="#F4F4F2" opacity="0.6"/>
+      <rect x="450" y="250" width="390" height="230" fill="#F6E8E8" opacity="0.4"/>
+      <!-- quadrant labels -->
+      <text x="70" y="40" font-size="13" font-weight="700" fill="#2F7D5C">DO FIRST — big payoff, small effort</text>
+      <text x="460" y="40" font-size="13" font-weight="700" fill="#6B4E9E">BIG BETS — worth it, plan properly</text>
+      <text x="70" y="470" font-size="13" font-weight="700" fill="#8A8F94">NICE-TO-HAVE — when convenient</text>
+      <text x="460" y="470" font-size="13" font-weight="700" fill="#A13D3D">AVOID FOR NOW</text>
+      <!-- axes -->
+      <line x1="60" y1="250" x2="840" y2="250" stroke="#C9CCC8" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="450" y1="20" x2="450" y2="480" stroke="#C9CCC8" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="60" y1="480" x2="840" y2="480" stroke="#26282B" stroke-width="1.5"/>
+      <line x1="60" y1="20" x2="60" y2="480" stroke="#26282B" stroke-width="1.5"/>
+      <text x="450" y="508" font-size="12" fill="#6B7076" text-anchor="middle">EFFORT →</text>
+      <text x="30" y="250" font-size="12" fill="#6B7076" text-anchor="middle" transform="rotate(-90 30 250)">PAYOFF →</text>
+
+      <!-- DO FIRST quadrant dots -->
+      <g>
+        <circle cx="120" cy="150" r="9" fill="#2F6690"/>
+        <text x="136" y="147" font-size="12.5" font-weight="600">Trim CURRENT_TASK.md</text>
+        <text x="136" y="161" font-size="10.5" fill="#6B7076">330KB chokes every seed</text>
+        <circle cx="120" cy="150" r="13" fill="none" stroke="#A13D3D" stroke-width="2"/>
+      </g>
+      <g>
+        <circle cx="150" cy="90" r="9" fill="#2F6690"/>
+        <text x="166" y="87" font-size="12.5" font-weight="600">Cold-start drill</text>
+        <text x="166" y="101" font-size="10.5" fill="#6B7076">measures every other gap</text>
+      </g>
+      <g>
+        <circle cx="230" cy="120" r="9" fill="#2F7D5C"/>
+        <text x="246" y="117" font-size="12.5" font-weight="600">Schema book (generated)</text>
+        <text x="246" y="131" font-size="10.5" fill="#6B7076">tables + meanings, auto-built</text>
+      </g>
+      <g>
+        <circle cx="140" cy="205" r="9" fill="#2F6690"/>
+        <text x="156" y="202" font-size="12.5" font-weight="600">Migration ordering pattern</text>
+        <text x="156" y="216" font-size="10.5" fill="#6B7076">ledger fix #8, already designed</text>
+      </g>
+      <g>
+        <circle cx="280" cy="180" r="9" fill="#2F6690"/>
+        <text x="296" y="177" font-size="12.5" font-weight="600">Evidence durability</text>
+        <text x="296" y="191" font-size="10.5" fill="#6B7076">verify reports survive in repo</text>
+      </g>
+      <g>
+        <circle cx="90" cy="230" r="9" fill="#2F7D5C"/>
+        <text x="106" y="227" font-size="12.5" font-weight="600">Fix Genesis manifest</text>
+        <text x="106" y="241" font-size="10.5" fill="#6B7076">note the ADR registry exists</text>
+      </g>
+
+      <!-- BIG BETS quadrant dots -->
+      <g>
+        <circle cx="560" cy="70" r="9" fill="#6B4E9E"/>
+        <text x="576" y="67" font-size="12.5" font-weight="600">Toolkit extraction + platform eval</text>
+        <text x="576" y="81" font-size="10.5" fill="#6B7076">copy out, parameterize; let platform kill the relay burden</text>
+      </g>
+      <g>
+        <circle cx="700" cy="55" r="9" fill="#B26A00"/>
+        <text x="716" y="52" font-size="12.5" font-weight="600">Market re-crawl → new BRD</text>
+        <text x="716" y="66" font-size="10.5" fill="#6B7076">fixes the blueprint ceiling</text>
+      </g>
+      <g>
+        <circle cx="600" cy="140" r="9" fill="#2F6690"/>
+        <text x="616" y="137" font-size="12.5" font-weight="600">State-truthfulness fixes</text>
+        <text x="616" y="151" font-size="10.5" fill="#6B7076">frozen: first fix deadlocked, needs redesign</text>
+        <circle cx="600" cy="140" r="13" fill="none" stroke="#A13D3D" stroke-width="2"/>
+      </g>
+      <g>
+        <circle cx="660" cy="105" r="9" fill="#6B4E9E"/>
+        <text x="676" y="102" font-size="12.5" font-weight="600">Container isolation</text>
+        <text x="676" y="116" font-size="10.5" fill="#6B7076">rule files read-only to agents — closes self-tampering for good</text>
+        <circle cx="660" cy="105" r="13" fill="none" stroke="#A13D3D" stroke-width="2"/>
+      </g>
+      <g>
+        <circle cx="530" cy="200" r="9" fill="#2F6690"/>
+        <text x="546" y="197" font-size="12.5" font-weight="600">Decision hard-stop gate</text>
+        <text x="546" y="211" font-size="10.5" fill="#6B7076">block builds on money/security/schema calls</text>
+        <circle cx="530" cy="200" r="13" fill="none" stroke="#A13D3D" stroke-width="2"/>
+      </g>
+
+      <!-- NICE TO HAVE -->
+      <g>
+        <circle cx="150" cy="310" r="9" fill="#2F7D5C"/>
+        <text x="166" y="307" font-size="12.5" font-weight="600">MANDATES rationale depth</text>
+        <text x="166" y="321" font-size="10.5" fill="#6B7076">only if the drill proves it's needed</text>
+      </g>
+      <g>
+        <circle cx="220" cy="360" r="9" fill="#2F7D5C"/>
+        <text x="236" y="357" font-size="12.5" font-weight="600">Doc regeneration cadence</text>
+        <text x="236" y="371" font-size="10.5" fill="#6B7076">re-audit docs vs code periodically</text>
+      </g>
+
+      <!-- AVOID -->
+      <g>
+        <circle cx="560" cy="330" r="9" fill="#2F7D5C"/>
+        <text x="576" y="327" font-size="12.5" font-weight="600">New principles/philosophy doc</text>
+        <text x="576" y="341" font-size="10.5" fill="#6B7076">would duplicate MANDATES — pointer trap</text>
+      </g>
+      <g>
+        <circle cx="620" cy="390" r="9" fill="#2F6690"/>
+        <text x="636" y="387" font-size="12.5" font-weight="600">New decision journal system</text>
+        <text x="636" y="401" font-size="10.5" fill="#6B7076">ADR-000..017 already exists — extend it instead</text>
+      </g>
+    </svg>
+  </div>
+
+  <h2>What unlocks what</h2>
+  <p class="sub">The order isn't arbitrary — each row's left side unlocks its right side.</p>
+  <div class="depflow">
+    <div class="deprow"><span class="cause">🧪 Cold-start drill</span><span class="arr">→</span><span class="effect">tells us if MANDATES needs rationale depth, if the schema book is enough, what judgment is missing</span></div>
+    <div class="deprow you-row"><span class="cause">🟠 Your 3 decisions</span><span class="arr">→</span><span class="effect">unfreeze the state-truthfulness fixes, the task-file trim, and the hard-stop gate</span></div>
+    <div class="deprow"><span class="cause">🧰 Toolkit extraction</span><span class="arr">→</span><span class="effect">V2 is built with the clean toolkit — and future products get it for free</span></div>
+    <div class="deprow"><span class="cause">🌍 Market re-crawl</span><span class="arr">→</span><span class="effect">corrected map → rewritten BRD → the blueprint V2 is actually built against</span></div>
+    <div class="deprow"><span class="cause">✅ All of the above</span><span class="arr">→</span><span class="effect">REBUILD: the upgraded machine + the corrected blueprint + the genesis kit</span></div>
+  </div>
+
+  <h2>The 4 things only the owner can decide</h2>
+  <p class="sub">Everything red-ringed above is waiting on one of these. None is urgent; all are blocking.</p>
+  <div class="youcards">
+    <div class="youcard">
+      <p class="q">1 · Task-file trim</p>
+      <p>The retrospective file is 330KB and chokes the seed. How many recent retros stay? Where do old ones archive?</p>
+    </div>
+    <div class="youcard">
+      <p class="q">2 · Hard-stop classes</p>
+      <p>Which decisions must freeze a build until the owner answers? Proposed: money movement, security posture, irreversible schema.</p>
+    </div>
+    <div class="youcard">
+      <p class="q">3 · Fix sequencing</p>
+      <p>Approve doing the low-risk quick wins first, and redesigning the deadlocked state-truthfulness fix before touching gates?</p>
+    </div>
+    <div class="youcard">
+      <p class="q">4 · Container isolation</p>
+      <p>Full container (agent can't touch its own rules) — or the partial subset now (skip-flag guard, CI backstop, no push keys) with the container later?</p>
+    </div>
+  </div>
+
+  <footer>
+    Compiled July 2026 from the system's own process ledger, improvement plans, and ground-truth audits. Companion to "The Governed Agent."
+  </footer>
+</div>
+
+</body>
+</html>
